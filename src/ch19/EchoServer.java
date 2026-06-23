@@ -1,0 +1,84 @@
+package ch19;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class EchoServer {
+	private static ServerSocket serverSocket = null;
+	
+	public static void main(String[] args) {
+		System.out.println("----------------------------------");
+		System.out.println("서버를 종료하려면 q 입력");
+		System.out.println("----------------------------------");
+		
+		
+	}
+	public static void startServer() {
+		Thread thread = new Thread() {
+			@Override
+			public void run() {
+				try {
+					//ServerSocket 생성 및 Port 바인딩
+					serverSocket = new ServerSocket(50001);
+					System.out.println("[서버] 시작됨");
+					
+					// 연결 수락 및 데이터 통신
+					while(true) {
+						System.out.println("\n[서버] 시작됨");
+						Socket socket = serverSocket.accept();
+						
+						// 연결된 소켓 정보 얻기
+						InetSocketAddress isa = (InetSocketAddress) socket.getRemoteSocketAddress();
+						System.out.println("[서버]" + isa.getHostName() + "의 연결 요청을 수락함");
+						
+//						//데이터 받기
+//						byte[] bytes = new byte[1024];
+//						InputStream is = socket.getInputStream();
+//						int readByteCount = is.read(bytes);
+//						String message = new String(bytes, 0 , readByteCount, "UTF-8");
+//						
+//						// 데이터 보내기
+//						bytes = message.getBytes("UTF-8");
+//						OutputStream os = socket.getOutputStream();
+//						os.write(bytes);
+//						os.flush();
+//						System.out.println("[서버] 받은 데이터를 다시 보냄" + message);
+						
+						
+						// 데이터 받기
+						DataInputStream dis = new DataInputStream(socket.getInputStream());
+						String message = dis.readUTF();
+						
+						// 데이터 보내기
+						DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+						dos.writeUTF(message);
+						dos.flush();
+						System.out.println("[서버] 받은 데이터를 다시 보냄" + message);
+						
+						// 연결 끊기
+						socket.close();
+						System.out.println("[서버]" + isa.getHostName() + "의 연결 끊음");
+					}
+				}catch(IOException e) {
+					System.out.println("[서버]" + e.getMessage());
+				}
+			}
+		};
+		
+		thread.start();
+	}
+	
+	public static void stopServer() {
+		try {
+			// 서버 소켓 닫고 Port 바인딩
+			serverSocket.close();
+			System.out.println("[서버] 종료됨");
+		}catch(IOException e1) {}
+	}
+}
